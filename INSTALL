@@ -1,0 +1,4 @@
+dvbdescramble uses the SCons build system. For a quick install to
+/usr/local/bin, use
+
+$ scons install

@@ -8,6 +8,60 @@ struct session_info
     const CAResourceInfo *res;
 };
 
+static guint8
+resmgr_alwaysok(CAResourceManager *mgr,
+                CATC *catc,
+                guint16 session);
+static void
+resmgr_init(CAResourceManager *mgr,
+            CATC *catc,
+            guint16 session);
+static gboolean
+resmgr_apdu(CAResourceManager *mgr,
+            CATC *catc,
+            guint16 session,
+            guint32 tag,
+            guint8 *data,
+            guint len);
+static void
+appinfo_init(CAResourceManager *mgr,
+             CATC *catc,
+             guint16 session);
+static gboolean
+appinfo_apdu(CAResourceManager *mgr,
+             CATC *catc,
+             guint16 session,
+             guint32 tag,
+             guint8 *data,
+             guint len);
+static void
+cainfo_init(CAResourceManager *mgr,
+            CATC *catc,
+            guint16 session);
+static gboolean
+cainfo_apdu(CAResourceManager *mgr,
+            CATC *catc,
+            guint16 session,
+            guint32 tag,
+            guint8 *data,
+            guint len);
+static gboolean
+datetime_apdu(CAResourceManager *mgr,
+              CATC *catc,
+              guint16 session,
+              guint32 tag,
+              guint8 *data,
+              guint len);
+
+static const int n_builtin_resources = 4;
+static const CAResourceInfo builtin_resources[5] = {
+    { 1, 1, 1, "Resource Manager",           resmgr_alwaysok, resmgr_init,  resmgr_apdu,  NULL},
+    { 2, 1, 1, "Application Information",    resmgr_alwaysok, appinfo_init, appinfo_apdu, NULL},
+    { 3, 1, 1, "Conditional Access Support", resmgr_alwaysok, cainfo_init,  cainfo_apdu,  NULL},
+    {36, 1, 1, "Date-Time",                  resmgr_alwaysok, NULL, datetime_apdu, NULL},
+    { 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
+};
+
 static void
 instance_init(CAResourceManager *mgr)
 {
@@ -36,6 +90,12 @@ CAResourceManager *
 ca_resource_manager_new()
 {
     return g_object_new(CA_TYPE_RESOURCE_MANAGER, NULL);
+}
+
+static guint32
+res_get_identifier(const CAResourceInfo *res)
+{
+    return (res->res_class << 16) | (res->res_type << 6) | res->res_version;
 }
 
 static guint8
@@ -79,8 +139,21 @@ resmgr_apdu(CAResourceManager *mgr,
     {
         g_assert(len == 0);
 
-        /* FIXME: actually advertise available resources */
-        ca_t_c_send_apdu(catc, session, 0x9F8011, NULL, 0);
+        guint8 *buf = g_new(guint8, 4*n_builtin_resources);
+        guint8 *cur = buf;
+        for (int i = 0; i < n_builtin_resources; i++, cur += 4)
+        {
+            guint32 identifier = res_get_identifier(&builtin_resources[i]);
+            cur[0] = identifier >> 24;
+            cur[1] = (identifier >> 16) & 0xFF;
+            cur[2] = (identifier >> 8) & 0xFF;
+            cur[3] = identifier & 0xFF;
+        }
+
+        /* Profile Reply */
+        ca_t_c_send_apdu(catc, session, 0x9F8011, buf, 4*n_builtin_resources);
+
+        g_free(buf);
 
         return TRUE;
     }
@@ -179,22 +252,6 @@ find_resource(CAResourceManager *mgr,
               guint res_class,
               guint res_type)
 {
-    static const CAResourceInfo builtin_resources[] = {
-        /* Resource Manager */
-        { 1, 1, 1, resmgr_alwaysok, resmgr_init, resmgr_apdu, NULL},
-
-        /* Application Information */
-        { 2, 1, 1, resmgr_alwaysok, appinfo_init, appinfo_apdu, NULL},
-
-        /* Conditional Access Support */
-        { 3, 1, 1, resmgr_alwaysok, cainfo_init, cainfo_apdu, NULL},
-
-        /* Date/Time */
-        {36, 1, 1, resmgr_alwaysok, NULL, datetime_apdu, NULL},
-
-        { 0, 0, 0, NULL, NULL, NULL, NULL}
-    };
-
     for (const CAResourceInfo *res = builtin_resources; res->res_class; res++)
     {
         if (res->res_class == res_class && res->res_type == res_type)
@@ -244,7 +301,7 @@ handle_spdu(CAResourceManager *mgr,
         if (res == NULL)
             res_identifier = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
         else
-            res_identifier = (res->res_class << 16) | (res->res_type << 6) | res->res_version;
+            res_identifier = res_get_identifier(res);
 
         g_debug("resource requested: 0x%08X - response: 0x%02X", res_identifier, status);
 
@@ -290,7 +347,7 @@ handle_spdu(CAResourceManager *mgr,
         if (!handled)
         {
             g_debug("APDU fell through:");
-            g_debug("    session = 0x%04X", session);
+            g_debug("    session = 0x%04X (connected to resource %s)", session, i->res->name);
             g_debug("    tag     = 0x%06X", apdu_tag);
             g_debug("    len     = %d", apdu_len);
             for (int i = 0; i < apdu_len; i++)

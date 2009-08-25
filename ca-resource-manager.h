@@ -34,6 +34,8 @@ struct _CAResourceInfo
     guint res_type : 10;
     guint res_version : 6;
 
+    const char *name;
+
     /* Returns: 0 or an error as described in EN 50221, page 20 */
     guint8 (*open)(CAResourceManager *mgr,
                    CATC *catc,

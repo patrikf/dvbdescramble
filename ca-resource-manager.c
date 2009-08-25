@@ -435,8 +435,8 @@ ca_resource_manager_descramble_pmt(CAResourceManager *mgr,
     guint8 *end = pmt+3+section_length-4; /* includes CRC */
 
     guint8 ca_pmt[512];
-    /* list management: only */
-    ca_pmt[0] = 0x03;
+    /* list management: add */
+    ca_pmt[0] = 0x04;
 
     /* [1..3] program number, version, current_next */
     memcpy(ca_pmt+1, pmt+3, 3);

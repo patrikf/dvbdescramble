@@ -1,0 +1,20 @@
+0.2.1
+    * Send the first PMT with the "only" flag (instead of "add"). Makes my
+    CryptoWorks module work again.
+--Patrik Fimml <patrik@fimml.at>
+
+0.2
+    * Now ignores traffic from other Transport Connections, instead of trying
+    to close them. This makes CAMs that were left in an unclean state work
+    more reliably.
+
+    * Introduces some basic support for descrambling more than one programme.
+    (0.1 claimed to do so but didn't.)
+
+    * A small glitch in the Link Layer (TPDU) data receive code made
+    AlphaCrypt cards hang in the initialization protocol. Fixed.
+
+    * I was able to hack on dvbdescramble on a machine with an AlphaCrypt CAM
+    (thanks to Todor Neshev), so these should work. Irdeto and CryptoWorks
+    modules are to follow.
+--Patrik Fimml <patrik@fimml.at>

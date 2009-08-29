@@ -44,6 +44,7 @@ struct _CAResourceManager
     GObject _parent;
     GList *resources;
     GArray *sessions;
+    gboolean first;
 };
 
 struct _CAResourceInfo

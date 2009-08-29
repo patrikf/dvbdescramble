@@ -85,6 +85,7 @@ instance_init(CAResourceManager *mgr)
 {
     mgr->resources = NULL;
     mgr->sessions = g_array_new(FALSE, FALSE, sizeof(gpointer));
+    mgr->first = TRUE;
 }
 
 GType
@@ -453,8 +454,18 @@ ca_resource_manager_descramble_pmt(CAResourceManager *mgr,
     guint8 *end = pmt+3+section_length-4; /* includes CRC */
 
     guint8 ca_pmt[512];
-    /* list management: add */
-    ca_pmt[0] = 0x04;
+    if (mgr->first)
+    {
+	mgr->first = FALSE;
+
+        /* list management: only */
+        ca_pmt[0] = 0x03;
+    }
+    else
+    {
+        /* list management: add */
+        ca_pmt[0] = 0x04;
+    }
 
     /* [1..3] program number, version, current_next */
     memcpy(ca_pmt+1, pmt+3, 3);

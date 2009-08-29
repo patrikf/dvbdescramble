@@ -28,7 +28,6 @@ if ARGUMENTS.get("stack", False):
 
 env.ParseConfig("pkg-config --cflags --libs glib-2.0 gobject-2.0")
 env.glibMarshal("marshal.in")
-env.Program("ca-test", Split("ca-test.c ca-device.c ca-module.c misc.c marshal.c ca-t-c.c ca-resource-manager.c tune.c diseqc.c"));
 dvbdescramble = env.Program("dvbdescramble", Split("dvbdescramble.c ca-device.c ca-module.c misc.c marshal.c ca-t-c.c ca-resource-manager.c"));
 
 PREFIX = ARGUMENTS.get("PREFIX", "/usr/local")

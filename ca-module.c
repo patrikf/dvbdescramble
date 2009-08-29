@@ -51,7 +51,7 @@ received_tpdu_default(CAModule *cam,
 
     /* no such channel! tell the module */
     /* Delete_T_C */
-    ca_module_send_tpdu(cam, channel, 0x84, (guint8[]){channel}, 1);
+//    ca_module_send_tpdu(cam, 0x84, channel, (guint8[]){channel}, 1);
     return TRUE;
 }
 

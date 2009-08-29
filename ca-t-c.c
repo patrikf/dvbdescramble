@@ -54,17 +54,18 @@ received_tpdu_default(CATC *catc,
     {
         g_assert(len == 2);
         g_assert(data[0] == catc->id);
+
+        /* kill pending poll function */
+        if (catc->poll_id)
+            g_source_remove(catc->poll_id);
         if (data[1] & 0x80)
         {
 #if DEBUG
             g_debug("module has data!");
 #endif
-            /* kill pending poll function */
-            if (catc->poll_id)
-                g_source_remove(catc->poll_id);
 
             /* Receive Data */
-            ca_module_send_tpdu(catc->module, 0x81, catc->id, (guint8[]){catc->id}, 1);
+            ca_module_send_tpdu(catc->module, 0x81, catc->id, NULL, 0);
         }
         else
         {

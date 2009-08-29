@@ -18,11 +18,10 @@
 #define DEFAULT_DMX "/dev/dvb/adapter0/demux0"
 #define DEFAULT_SLOT 0
 
-int pidv[MAXARGS];
 int pmtv[MAXARGS];
 int programv[MAXARGS];
 
-int pidc, pmtc, programc;
+int pmtc, programc;
 
 gchar *cadev = DEFAULT_CA;
 gchar *dmxdev = DEFAULT_DMX;
@@ -215,18 +214,17 @@ int main(int argc, char **argv)
                 error = TRUE;
                 break;
             }
-            pidv[pidc++] = pid;
         }
     }
     if (error || argc <= 1)
     {
-        fprintf(stderr, "Usage: dvbdescramble [options] PID...\n");
+        fprintf(stderr, "Usage: dvbdescramble [options]\n");
         fprintf(stderr, "see \"dvbdescramble --help\" for more information\n");
         return 1;
     }
     if (help)
     {
-        fprintf(stderr, "Usage: dvbdescramble [options] PID...\n");
+        fprintf(stderr, "Usage: dvbdescramble [options]\n");
         fprintf(stderr, "Set up a CA Module for descrambling.\n\n");
         fprintf(stderr, "Options:\n");
         fprintf(stderr, "  --ca DEVICE     CA device (default: %s)\n", DEFAULT_CA);
@@ -237,8 +235,9 @@ int main(int argc, char **argv)
         fprintf(stderr, "dvbdescramble will tell the CA Module to descramble the PIDs\n"
                         "given at the command line. For this to work, the CA Module has\n"
                         "to be fed the corresponding Programme Map Tables (PMTs). You can\n"
-                        "either give their PIDs directly using --pmt, or let dvbdescramble\n"
-                        "look them up in the Program Allocation Table with --program.\n");
+                        "either give the PMTs' PIDs directly using --pmt, or let\n"
+                        "dvbdescramble look them up in the Program Allocation Table with\n"
+                        "--program.\n");
         return 0;
     }
 
